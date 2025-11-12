@@ -1,0 +1,20 @@
+# ConvNeXt Base Model Configuration
+# Paper: A ConvNet for the 2020s (https://arxiv.org/abs/2201.03545)
+# State-of-the-art CNN with transformer-like design
+
+name: convnext_base
+architecture: convnext_base
+pretrained: true
+num_classes: 100
+
+# Model specific settings
+drop_path_rate: 0.1
+drop_rate: 0.0
+layer_scale_init_value: 1e-6
+
+# Input
+input_size: 600  # Competition requirement
+in_chans: 3
+
+# Inference optimization
+use_compile: false  # Set to true for PyTorch 2.0+ for faster inference

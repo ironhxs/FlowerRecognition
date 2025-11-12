@@ -1,0 +1,19 @@
+# Swin Transformer V2 Configuration
+# Paper: Swin Transformer V2: Scaling Up Capacity and Resolution
+# State-of-the-art vision transformer
+
+name: swin_transformer_v2
+architecture: swinv2_base_window12to16_192to256.ms_in22k_ft_in1k
+pretrained: true
+num_classes: 100
+
+# Model specific settings
+drop_path_rate: 0.2
+drop_rate: 0.0
+
+# Input
+input_size: 600
+in_chans: 3
+
+# Inference optimization
+use_compile: false

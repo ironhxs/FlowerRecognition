@@ -1,0 +1,22 @@
+defaults:
+  - model: convnext_base
+  - dataset: flower100
+  - training: default
+  - augmentation: strong
+  - _self_
+
+# Project Settings
+project_name: flower_recognition
+experiment_name: baseline
+seed: 42
+
+# Paths
+data_dir: ./data
+output_dir: ./results
+checkpoint_dir: ${output_dir}/checkpoints
+log_dir: ${output_dir}/logs
+
+# Hardware
+device: cuda
+num_workers: 4
+pin_memory: true

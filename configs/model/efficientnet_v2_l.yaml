@@ -1,0 +1,19 @@
+# EfficientNetV2-L Model Configuration
+# Paper: EfficientNetV2: Smaller Models and Faster Training
+# Excellent balance between accuracy and inference speed
+
+name: efficientnet_v2_l
+architecture: tf_efficientnetv2_l
+pretrained: true
+num_classes: 100
+
+# Model specific settings
+drop_path_rate: 0.2
+drop_rate: 0.3
+
+# Input
+input_size: 600
+in_chans: 3
+
+# Inference optimization
+use_compile: false
