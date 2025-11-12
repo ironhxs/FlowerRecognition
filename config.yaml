@@ -1,0 +1,38 @@
+# Model Configuration
+model:
+  name: "resnet50"
+  pretrained: true
+  num_classes: 102  # Default for Oxford Flowers dataset
+
+# Training Configuration
+training:
+  batch_size: 32
+  num_epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  
+# Data Configuration
+data:
+  image_size: 224
+  train_path: "data/train"
+  val_path: "data/val"
+  test_path: "data/test"
+  num_workers: 4
+  
+# Augmentation Configuration
+augmentation:
+  random_crop: true
+  random_flip: true
+  color_jitter: true
+  rotation: 15
+  
+# Checkpoint Configuration
+checkpoint:
+  save_dir: "models"
+  save_freq: 5
+  
+# Logging Configuration
+logging:
+  log_dir: "logs"
+  tensorboard: true
