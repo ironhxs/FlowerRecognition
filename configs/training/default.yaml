@@ -1,0 +1,38 @@
+# Training Configuration
+
+# Optimization
+optimizer:
+  name: adamw
+  lr: 1e-4
+  weight_decay: 0.05
+  betas: [0.9, 0.999]
+
+# Learning rate scheduler
+scheduler:
+  name: cosine
+  warmup_epochs: 5
+  min_lr: 1e-6
+  
+# Training parameters
+epochs: 50
+early_stopping:
+  patience: 10
+  min_delta: 0.001
+
+# Mixed precision training
+use_amp: true  # Automatic Mixed Precision for faster training
+
+# Gradient clipping
+clip_grad_norm: 1.0
+
+# Checkpointing
+save_every: 5
+save_best_only: true
+monitor_metric: val_accuracy
+monitor_mode: max
+
+# Label smoothing
+label_smoothing: 0.1
+
+# Gradient accumulation
+accumulation_steps: 1

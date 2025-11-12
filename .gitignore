@@ -205,3 +205,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project specific
+data/
+results/
+outputs/
+*.pt
+*.pth
+*.onnx
+submission.zip
+temp_submission/
+predictions*.csv
+!predictions_sample.csv
