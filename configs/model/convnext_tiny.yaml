@@ -1,0 +1,18 @@
+# ConvNeXt Tiny Model Configuration
+# Smaller and faster variant for quick experiments
+
+name: convnext_tiny
+architecture: convnext_tiny
+pretrained: true
+num_classes: 100
+
+# Model specific settings
+drop_path_rate: 0.1
+drop_rate: 0.0
+
+# Input
+input_size: 600
+in_chans: 3
+
+# Inference optimization
+use_compile: false

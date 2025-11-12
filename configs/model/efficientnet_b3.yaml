@@ -1,0 +1,18 @@
+# EfficientNet-B3 Model Configuration
+# Good balance between accuracy and speed
+
+name: efficientnet_b3
+architecture: efficientnet_b3
+pretrained: true
+num_classes: 100
+
+# Model specific settings
+drop_rate: 0.3
+drop_path_rate: 0.2
+
+# Input
+input_size: 600
+in_chans: 3
+
+# Inference optimization
+use_compile: false
