@@ -1,0 +1,35 @@
+# Swin V2 Continue Training Configuration
+# Resume from best checkpoint and fine-tune
+
+defaults:
+  - model: swin_v2_optimized
+  - dataset: flower100
+  - training: swin_finetune
+  - augmentation: swin_optimized
+  - _self_
+
+# Experiment name
+name: swin_v2_finetune
+
+# Dataset override
+dataset:
+  batch_size: 32  # 充分利用显存
+
+# Paths
+data_dir: ./datasets
+checkpoint_dir: ./results/checkpoints_swin_finetune
+log_dir: ./results/logs_swin_finetune
+
+# Resume from checkpoint
+resume_from: ./results/checkpoints_swin_optimized/best_model.pt
+
+# Hardware settings
+device: cuda
+num_workers: 18
+pin_memory: true
+
+# Reproducibility
+seed: 42
+
+# Additional settings
+use_wandb: false

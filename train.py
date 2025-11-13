@@ -82,6 +82,10 @@ class Trainer:
         self.best_val_acc = 0.0
         self.patience_counter = 0
         
+        # Resume from checkpoint if specified
+        if hasattr(cfg, 'resume_from') and cfg.resume_from:
+            self.load_checkpoint_for_resume(cfg.resume_from)
+        
     def set_seed(self, seed: int):
         """Set random seed for reproducibility."""
         torch.manual_seed(seed)
@@ -89,6 +93,34 @@ class Trainer:
         np.random.seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+    
+    def load_checkpoint_for_resume(self, checkpoint_path: str):
+        """Load checkpoint to resume training."""
+        if not os.path.exists(checkpoint_path):
+            print(f"Warning: Resume checkpoint not found: {checkpoint_path}")
+            return
+        
+        print(f"\n{'='*60}")
+        print(f"Resuming from checkpoint: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+        
+        # Load model weights
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        print(f"✓ Model weights loaded")
+        
+        # Load optimizer state (optional, can start fresh with new LR)
+        if 'optimizer_state_dict' in checkpoint and hasattr(self, 'optimizer'):
+            try:
+                self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                print(f"✓ Optimizer state loaded")
+            except:
+                print(f"⚠ Optimizer state not loaded (using fresh optimizer)")
+        
+        # Load training state
+        self.current_epoch = 0  # Start from 0 for new training run
+        self.best_val_acc = checkpoint.get('best_val_acc', 0.0)
+        print(f"✓ Previous best val acc: {self.best_val_acc:.2f}%")
+        print(f"{'='*60}\n")
     
     def build_optimizer(self) -> optim.Optimizer:
         """Build optimizer from config."""

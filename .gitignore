@@ -218,3 +218,8 @@ submission.zip
 temp_submission/
 predictions*.csv
 !predictions_sample.csv
+# Training logs and process files
+*.pid
+*.log
+train_finetune.log
+nohup.out

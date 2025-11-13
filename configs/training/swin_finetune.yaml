@@ -1,0 +1,46 @@
+# Swin V2 Fine-tune Configuration
+# Continue training from best checkpoint with reduced LR
+
+# Optimizer settings
+optimizer:
+  name: AdamW
+  lr: 1.0e-5  # 降低学习率 (原来5e-5)
+  betas: [0.9, 0.999]
+  weight_decay: 0.05
+  eps: 1.0e-8
+
+# Learning rate scheduler
+scheduler:
+  name: cosine
+  warmup_epochs: 3  # 减少warmup
+  min_lr: 1.0e-7  # 更小的最低学习率
+  warmup_lr: 5.0e-6
+
+# Training settings
+epochs: 100  # 再训练100轮
+batch_size: 20  # 保持不变
+accumulation_steps: 1
+val_every: 1
+save_every: 5
+
+# Regularization
+label_smoothing: 0.1
+drop_path_rate: 0.2
+
+# Loss function
+loss_function: focal
+focal_alpha: 0.25
+focal_gamma: 2.0
+
+# Early stopping - 更宽松
+early_stopping:
+  patience: 30  # 增大patience (原来20)
+  min_delta: 0.0005  # 降低阈值 (原来0.001)
+  mode: max
+  monitor: val_acc
+
+# Mixed precision training
+use_amp: true
+
+# Gradient clipping
+clip_grad_norm: 1.0
