@@ -1,0 +1,23 @@
+# Optimized Dataset Config for Large Models (EfficientNetV2-L, ConvNeXt Large)
+# Reduced batch size for 600x600 images to prevent OOM
+
+name: flower100
+num_classes: 100
+
+# Data paths
+train_csv: ${data_dir}/train.csv
+train_dir: ${data_dir}/train
+test_dir: ${data_dir}/test
+
+# Data split
+val_split: 0.15  # 15% of training data for validation
+
+# Image settings
+image_size: 600
+channels: 3
+
+# DataLoader settings - Optimized for large models
+batch_size: 16  # Reduced from 32 to prevent CUDA OOM
+shuffle: true
+
+# Note: If still OOM, try batch_size: 8 or use gradient accumulation

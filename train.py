@@ -27,7 +27,7 @@ import numpy as np
 sys.path.append(str(Path(__file__).parent))
 
 from datasets import create_dataloaders
-from models import build_model, get_model_size_mb
+from models import build_model, get_model_size_mb, get_loss_function
 
 
 class Trainer:
@@ -65,10 +65,8 @@ class Trainer:
         # Create dataloaders
         self.train_loader, self.val_loader, self.test_loader = create_dataloaders(cfg)
         
-        # Loss function with label smoothing
-        self.criterion = nn.CrossEntropyLoss(
-            label_smoothing=cfg.training.get('label_smoothing', 0.0)
-        )
+        # Loss function (supports CrossEntropy, Focal Loss, etc.)
+        self.criterion = get_loss_function(cfg)
         
         # Optimizer
         self.optimizer = self.build_optimizer()
@@ -323,7 +321,7 @@ class Trainer:
         self.writer.close()
 
 
-@hydra.main(version_base=None, config_path="../configs", config_name="config")
+@hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
     """Main training function."""
     print("="*60)

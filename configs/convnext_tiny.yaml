@@ -1,0 +1,41 @@
+# ConvNeXt Tiny Training Config
+# Fastest training for quick testing - 110MB model
+
+defaults:
+  - model: convnext_tiny
+  - dataset: flower100
+  - training: focal
+  - augmentation: medium  # Lighter augmentation for speed
+  - _self_
+
+# Dataset settings
+dataset:
+  batch_size: 32
+  num_workers: 8
+  
+# Training settings
+training:
+  epochs: 50  # Quick training
+  
+# Project Settings
+project_name: flower_recognition
+experiment_name: convnext_tiny
+seed: 42
+
+# Paths
+data_dir: ./data
+output_dir: ./results
+checkpoint_dir: ${output_dir}/checkpoints
+log_dir: ${output_dir}/logs
+
+# Hardware
+device: cuda
+num_workers: 8
+pin_memory: true
+
+# Performance:
+# - Model size: ~110MB
+# - Training time: ~3-4 hours (50 epochs)
+# - Expected accuracy: 82-86%
+# - VRAM usage: ~6GB
+# - Use case: Quick baseline, testing pipeline

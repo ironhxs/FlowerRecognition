@@ -1,0 +1,17 @@
+# ConvNeXt Tiny - No Pretrained Weights (For Testing)
+# Fast training for pipeline validation without network dependency
+
+model:
+  name: convnext_tiny
+  architecture: convnext_tiny
+  pretrained: false  # Disabled for testing
+  num_classes: 100
+  drop_path_rate: 0.1
+  drop_rate: 0.0
+  input_size: 600
+  in_chans: 3
+  use_compile: false
+
+# Note: Without pretrained weights, accuracy will be lower
+# Expected: ~60-70% (vs 85-88% with pretrained)
+# Use this only for quick pipeline testing

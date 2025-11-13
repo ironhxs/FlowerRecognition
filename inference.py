@@ -208,7 +208,7 @@ def save_predictions(
     print(f"Total predictions: {len(df)}")
 
 
-@hydra.main(version_base=None, config_path="../configs", config_name="config")
+@hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
     """Main inference function."""
     import argparse

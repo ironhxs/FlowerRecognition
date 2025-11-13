@@ -1,0 +1,42 @@
+# ConvNeXt Base Training Config
+# Balanced model - 340MB, good accuracy/speed trade-off
+
+defaults:
+  - model: convnext_base
+  - dataset: flower100
+  - training: focal
+  - augmentation: ultra_strong
+  - _self_
+
+# Dataset settings
+dataset:
+  batch_size: 16  # Safe for most GPUs
+  num_workers: 8
+  
+# Training settings
+training:
+  epochs: 100
+  accumulation_steps: 2  # Simulate batch_size=32
+  
+# Project Settings
+project_name: flower_recognition
+experiment_name: convnext_base
+seed: 42
+
+# Paths
+data_dir: ./data
+output_dir: ./results
+checkpoint_dir: ${output_dir}/checkpoints
+log_dir: ${output_dir}/logs
+
+# Hardware
+device: cuda
+num_workers: 8
+pin_memory: true
+
+# Performance:
+# - Model size: ~340MB
+# - Training time: ~5-8 hours (100 epochs)
+# - Expected accuracy: 87-90%
+# - VRAM usage: ~10-12GB
+# - Use case: Main training, production model

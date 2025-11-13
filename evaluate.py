@@ -207,7 +207,7 @@ class Evaluator:
         print(f"\nAll evaluation results saved to {output_dir}")
 
 
-@hydra.main(version_base=None, config_path="../configs", config_name="config")
+@hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
     """Main evaluation function."""
     import argparse

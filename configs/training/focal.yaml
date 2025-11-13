@@ -1,0 +1,46 @@
+# Training Configuration with Focal Loss
+# Use this for handling difficult samples and class imbalance
+
+# Optimization
+optimizer:
+  name: adamw
+  lr: 1e-4
+  weight_decay: 0.05
+  betas: [0.9, 0.999]
+
+# Learning rate scheduler
+scheduler:
+  name: cosine
+  warmup_epochs: 5
+  min_lr: 1e-6
+  
+# Training parameters
+epochs: 50
+early_stopping:
+  patience: 10
+  min_delta: 0.001
+
+# Mixed precision training
+use_amp: true  # Automatic Mixed Precision for faster training
+
+# Gradient clipping
+clip_grad_norm: 1.0
+
+# Checkpointing
+save_every: 5
+save_best_only: true
+monitor_metric: val_accuracy
+monitor_mode: max
+
+# Loss function - Focal Loss for difficult samples
+loss_function: focal  # Options: 'ce', 'focal', 'lsce'
+
+# Focal Loss parameters
+focal_alpha: 0.25  # Balance factor (0.25 for hard examples focus)
+focal_gamma: 2.0   # Focusing parameter (2.0 is standard, higher = more focus on hard examples)
+
+# Label smoothing (can be used with focal loss)
+label_smoothing: 0.1
+
+# Gradient accumulation
+accumulation_steps: 1

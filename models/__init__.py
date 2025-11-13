@@ -8,6 +8,11 @@ from .flower_model import (
     list_recommended_models,
     RECOMMENDED_MODELS
 )
+from .losses import (
+    FocalLoss,
+    LabelSmoothingCrossEntropy,
+    get_loss_function
+)
 
 __all__ = [
     'FlowerRecognitionModel',
@@ -15,5 +20,8 @@ __all__ = [
     'count_parameters',
     'get_model_size_mb',
     'list_recommended_models',
-    'RECOMMENDED_MODELS'
+    'RECOMMENDED_MODELS',
+    'FocalLoss',
+    'LabelSmoothingCrossEntropy',
+    'get_loss_function'
 ]

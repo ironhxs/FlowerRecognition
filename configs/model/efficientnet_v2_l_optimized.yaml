@@ -1,0 +1,23 @@
+# High-Performance Model Configuration
+# EfficientNetV2-L with optimized settings for flower recognition
+# Model size: ~460MB (within 500MB limit)
+# Parameters: 120M (within 10B limit)
+
+name: efficientnet_v2_l_optimized
+architecture: tf_efficientnetv2_l
+pretrained: true  # Use ImageNet-21k pretrained weights
+num_classes: 100
+
+# Model specific settings - Optimized for flower recognition
+drop_path_rate: 0.25  # Increased stochastic depth for better regularization
+drop_rate: 0.4        # Increased dropout for better generalization
+
+# Input
+input_size: 600  # Competition requirement
+in_chans: 3
+
+# Inference optimization
+use_compile: false  # Set to true for PyTorch 2.0+ for faster inference
+
+# Additional settings for better performance
+# EfficientNetV2-L is one of the best models within competition constraints
