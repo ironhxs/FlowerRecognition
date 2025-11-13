@@ -223,3 +223,10 @@ predictions*.csv
 *.log
 train_finetune.log
 nohup.out
+
+# Large dataset files - 数据文件不要提交
+datasets/train.zip
+datasets/*.csv
+datasets/train/
+datasets/test/
+datasets/val/
