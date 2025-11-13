@@ -16,7 +16,12 @@ dataset:
 # Training settings
 training:
   epochs: 100
-  accumulation_steps: 3  # Simulate batch_size=36
+  accumulation_steps: 1  # Full batch_size=32
+  val_every: 1  # Validate every N epochs
+  save_every: 5  # Save checkpoint every N epochs
+  early_stopping:
+    patience: 10
+    min_delta: 0.001
   
 # Project Settings
 project_name: flower_recognition
@@ -24,7 +29,7 @@ experiment_name: convnext_large
 seed: 42
 
 # Paths
-data_dir: ./data
+data_dir: ./datasets
 output_dir: ./results
 checkpoint_dir: ${output_dir}/checkpoints
 log_dir: ${output_dir}/logs

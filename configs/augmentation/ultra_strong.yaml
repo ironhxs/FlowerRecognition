@@ -46,14 +46,13 @@ train:
       p: 0.2
   
   - GaussNoise:
-      var_limit: [10, 60]
+      std_range: [0.01, 0.05]
       p: 0.2
   
   # Advanced augmentations
   - ElasticTransform:  # Natural flower deformations
       alpha: 1
       sigma: 50
-      alpha_affine: 50
       p: 0.2
   
   - GridDistortion:  # Simulate perspective changes
@@ -62,26 +61,21 @@ train:
       p: 0.2
   
   - CoarseDropout:  # Cutout for robustness
-      max_holes: 8
-      max_height: 40
-      max_width: 40
-      min_holes: 1
-      min_height: 20
-      min_width: 20
-      fill_value: 0
+      num_holes_range: [1, 8]
+      hole_height_range: [20, 40]
+      hole_width_range: [20, 40]
+      fill: 0
       p: 0.4
   
   # Rare but useful
   - RandomShadow:  # Outdoor flower photos
       shadow_roi: [0, 0.5, 1, 1]
-      num_shadows_lower: 1
-      num_shadows_upper: 2
+      num_shadows_limit: [1, 2]
       shadow_dimension: 5
       p: 0.2
   
   - RandomFog:  # Weather conditions
-      fog_coef_lower: 0.1
-      fog_coef_upper: 0.3
+      fog_coef_range: [0.1, 0.3]
       alpha_coef: 0.08
       p: 0.1
   

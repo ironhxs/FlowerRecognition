@@ -16,5 +16,5 @@ image_size: 600
 channels: 3
 
 # DataLoader settings
-batch_size: 32
+batch_size: 64  
 shuffle: true

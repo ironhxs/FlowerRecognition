@@ -1,0 +1,45 @@
+# Swin Transformer V2 Optimized Training Configuration
+
+# Optimizer settings
+optimizer:
+  name: AdamW  # 改为name字段
+  lr: 5.0e-5  # Lower LR for fine-tuning pretrained Swin
+  betas: [0.9, 0.999]
+  weight_decay: 0.05
+  eps: 1.0e-8
+
+# Learning rate scheduler
+scheduler:
+  name: cosine  # 改为name字段
+  warmup_epochs: 5
+  min_lr: 1.0e-6
+  warmup_lr: 1.0e-6
+
+# Training settings
+epochs: 300  # Longer training for convergence
+batch_size: 64  # 显存充足,直接用32 (你有15GB空闲)
+accumulation_steps: 1  # 不需要梯度累积,每步更新
+val_every: 1
+save_every: 5
+
+# Regularization
+label_smoothing: 0.1
+drop_path_rate: 0.2  # Stochastic depth for Swin V2
+
+# Loss function
+loss_function: focal
+focal_alpha: 0.25
+focal_gamma: 2.0
+
+# Early stopping
+early_stopping:
+  patience: 20  # More patience for longer training
+  min_delta: 0.001
+  mode: max
+  monitor: val_acc
+
+# Mixed precision training
+use_amp: true
+
+# Gradient clipping
+clip_grad_norm: 1.0  # Prevent gradient explosion

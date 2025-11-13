@@ -11,7 +11,7 @@ experiment_name: baseline
 seed: 42
 
 # Paths
-data_dir: ./data
+data_dir: ./datasets
 output_dir: ./results
 checkpoint_dir: ${output_dir}/checkpoints
 log_dir: ${output_dir}/logs

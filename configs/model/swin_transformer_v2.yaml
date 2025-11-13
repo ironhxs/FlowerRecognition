@@ -12,7 +12,7 @@ drop_path_rate: 0.2
 drop_rate: 0.0
 
 # Input
-input_size: 600
+input_size: 256  # 从600x600原图 crop 到 256x256
 in_chans: 3
 
 # Inference optimization

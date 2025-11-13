@@ -3,7 +3,7 @@
 数据准备脚本 - Data Preparation Script
 
 将原始数据转换为项目所需格式：
-1. 解压 train.zip 到 data/train/ 文件夹
+1. 解压 train.zip 到指定文件夹
 2. 转换 train_labels.csv 格式 (filename, category_id) -> (image_id, label)
 3. 重新映射 category_id 到 0-99 范围（如果需要）
 """
@@ -15,18 +15,67 @@ from pathlib import Path
 from tqdm import tqdm
 
 
-def prepare_flower_data(data_dir: str = "./data"):
+def find_train_zip():
+    """
+    查找 train.zip 的位置（支持 datasets 或 data 文件夹）
+    
+    Returns:
+        train.zip 的完整路径，或 None
+    """
+    # 优先查找 datasets 文件夹
+    datasets_zip = Path("./datasets/train.zip")
+    if datasets_zip.exists():
+        return datasets_zip
+    
+    # 其次查找 data 文件夹
+    data_zip = Path("./data/train.zip")
+    if data_zip.exists():
+        return data_zip
+    
+    return None
+
+
+def find_train_labels_csv():
+    """
+    查找 train_labels.csv 的位置（支持 datasets 或 data 文件夹）
+    
+    Returns:
+        train_labels.csv 的完整路径，或 None
+    """
+    # 优先查找 datasets 文件夹
+    datasets_csv = Path("./datasets/train_labels.csv")
+    if datasets_csv.exists():
+        return datasets_csv
+    
+    # 其次查找 data 文件夹
+    data_csv = Path("./data/train_labels.csv")
+    if data_csv.exists():
+        return data_csv
+    
+    return None
+
+
+def prepare_flower_data(data_dir: str = None):
     """
     准备花卉识别数据集
     
     Args:
-        data_dir: 数据目录路径
+        data_dir: 数据目录路径。如果为 None，自动检测位置
     """
+    # 自动检测数据位置
+    if data_dir is None:
+        train_zip = find_train_zip()
+        if train_zip is None:
+            print("✗ 错误: 找不到 train.zip（应在 datasets 或 data 文件夹中）")
+            return False
+        data_dir = str(train_zip.parent)
+    
     data_path = Path(data_dir)
     
     print("=" * 60)
     print("花卉识别数据准备 / Flower Recognition Data Preparation")
     print("=" * 60)
+    print(f"数据目录: {data_path}")
     
     # 步骤 1: 解压训练图片
     train_zip = data_path / "train.zip"
@@ -54,11 +103,21 @@ def prepare_flower_data(data_dir: str = "./data"):
         print(f"    包含 {len(os.listdir(train_dir))} 个文件")
     
     # 步骤 2: 转换 CSV 格式
-    labels_file = data_path / "train_labels.csv"
+    # 查找标签文件
+    labels_file = None
+    if (data_path / "train_labels.csv").exists():
+        labels_file = data_path / "train_labels.csv"
+    elif (data_path / "train.csv").exists():
+        labels_file = data_path / "train.csv"
+    
     output_csv = data_path / "train.csv"
     
     print(f"\n[2/3] 转换标签文件 / Converting label file...")
-    print(f"从 {labels_file} 到 {output_csv}")
+    if labels_file:
+        print(f"从 {labels_file} 到 {output_csv}")
+    else:
+        print(f"✗ 错误: 找不到 train_labels.csv 或 train.csv")
+        return False
     
     if not labels_file.exists():
         print(f"✗ 错误: 找不到 {labels_file}")
@@ -194,16 +253,28 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="花卉识别数据准备工具")
-    parser.add_argument('--data-dir', type=str, default='./data',
-                       help='数据目录路径 (默认: ./data)')
+    parser.add_argument('--data-dir', type=str, default=None,
+                       help='数据目录路径 (默认: 自动检测 datasets 或 data 文件夹)')
     parser.add_argument('--verify-only', action='store_true',
                        help='仅验证数据结构，不进行转换')
     
     args = parser.parse_args()
     
+    # 如果没有指定 data-dir，自动检测
+    data_dir = args.data_dir
+    if data_dir is None:
+        train_zip = find_train_zip()
+        if train_zip:
+            data_dir = str(train_zip.parent)
+            print(f"自动检测到数据在: {data_dir}\n")
+        else:
+            print("✗ 错误: 无法找到 train.zip")
+            print("请确保 train.zip 在 datasets 或 data 文件夹中")
+            exit(1)
+    
     if args.verify_only:
-        verify_data_structure(args.data_dir)
+        verify_data_structure(data_dir)
     else:
-        success = prepare_flower_data(args.data_dir)
+        success = prepare_flower_data(data_dir)
         if success:
-            verify_data_structure(args.data_dir)
+            verify_data_structure(data_dir)

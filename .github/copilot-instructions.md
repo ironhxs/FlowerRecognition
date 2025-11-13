@@ -1,153 +1,136 @@
-# Flower Recognition AI Challenge - Copilot Instructions
+# Flower Recognition - Copilot Instructions
 
-## Project Overview
-Competition-focused deep learning system for 100-class flower recognition using PyTorch, timm models, and Hydra configuration. Built for Windows with PowerShell.
+## Project Context
+Competition-focused deep learning system for 100-class flower classification using PyTorch, timm models, and Hydra configuration.
 
 **Competition**: 2025年第七届全国高校计算机能力挑战赛 - 花卉识别AI挑战赛
 
-**Critical Constraints**:
-- Model size: **≤ 500MB** (checked automatically during training)
-- Inference speed: **≤ 100ms/image** (test with `--benchmark`)
-- Input size: **600×600** pixels (configured in all models)
-- Model parameters: **< 10B** (all supported models comply)
-- Encoding: **UTF-8** for all CSV files
-- Submission format: **ZIP** with specific structure (use `prepare_submission.py`)
+**Mandatory Constraints**:
+- Model size: **≤ 500MB** (validated at `train.py` line ~60: `get_model_size_mb()`)
+- Inference speed: **≤ 100ms/image** (benchmark with `--benchmark` flag)
+- Input resolution: **600×600** pixels (all model configs enforce this)
+- Supported models: ConvNeXt (base/tiny/large), EfficientNet, Swin Transformer V2
 
-## Architecture & Data Flow
+## Architecture Overview
 
-### Three-Module Design
-1. **`datasets/flower_dataset.py`** - Handles data loading, Albumentations transforms, and train/val split
-2. **`models/flower_model.py`** - timm-based wrapper (`FlowerRecognitionModel`) supporting 6 architectures
-3. **`train.py`** / **`inference.py`** - Training loop with AMP, TensorBoard, checkpointing / Batch prediction with optional TTA
+### Three-Tier Component Design
+1. **`datasets/flower_dataset.py`**: `FlowerDataset` class + `build_transforms()` + `create_dataloaders()`
+   - Albumentations pipelines driven by YAML config (see `configs/augmentation/`)
+   - Returns tuples: `(image, label, image_id)` for tracking during inference
+   - Test mode scans directory automatically when `is_test=True`
 
-**Key Flow**: Hydra config → `build_model()` + `create_dataloaders()` → `Trainer` class → saves to `results/checkpoints/` + logs to `results/logs/`
+2. **`models/flower_model.py`**: `FlowerRecognitionModel` wrapper around timm models
+   - Factory: `build_model(cfg)` extracts architecture/pretrained/drop_path_rate from config
+   - All models initialize with 100 classes + ImageNet pretrained weights (configurable)
+   - Size check: `get_model_size_mb()` calculates parameter + buffer memory
 
-## Critical Hydra Configuration System
+3. **`train.py` / `inference.py`**: `Trainer` and `Predictor` orchestrators
+   - Trainer: Mixed precision (AMP) with `GradScaler`, early stopping, TensorBoard logging
+   - Predictor: Batch inference with optional TTA (horizontal flip averaging)
 
-### Config Composition Pattern
+**Data Flow**: Hydra config → factory functions → Trainer.train_loop() → checkpoint + logs
+
+## Hydra Configuration System (Critical)
+
+### Config Composition (defaults pattern in `config.yaml`)
+All settings cascade through Hydra's config groups—CLI overrides take precedence:
+
 ```bash
-# Configs live in configs/ with defaults pattern in config.yaml
-python train.py model=efficientnet_v2_l augmentation=medium training.epochs=100
+# Train with specific model and augmentation
+python train.py model=convnext_tiny augmentation=medium training.epochs=100
+
+# Check what config will be used
+python train.py --cfg job
 ```
 
-**Key Files**:
-- `configs/config.yaml` - defaults list, paths (`data_dir`, `checkpoint_dir`), device settings
-- `configs/model/*.yaml` - architecture name, pretrained flag, drop_path_rate, input_size
-- `configs/training/default.yaml` - optimizer (AdamW), scheduler (cosine with warmup), AMP, label_smoothing
-- `configs/augmentation/*.yaml` - Albumentations pipelines (strong/medium/light) with ImageNet normalization
+**Config file map**:
+- `configs/config.yaml`: Root defaults, data/output paths, device, seed
+- `configs/model/*.yaml`: Architecture, pretrained status, drop_path_rate (0.0-0.3 range)
+- `configs/training/default.yaml`: AdamW optimizer (lr=1e-4, weight_decay=0.05), cosine scheduler, label_smoothing=0.1, early_stopping patience=10
+- `configs/augmentation/{light,medium,strong,ultra_strong}.yaml`: Albumentations stages (list of dicts)
+- `configs/dataset/*.yaml`: CSV paths, val_split=0.2, batch_size=32, num_workers
 
-**Don't**: Hardcode paths or hyperparameters. **Do**: Add overrides via CLI or new YAML files.
+**Design principle**: Never hardcode hyperparameters—add config files or override via CLI.
 
-## Development Workflows
+## Critical Workflows
 
-### Training Workflow
-```powershell
-# Always check model size first
-python train.py  # Logs "Model size: XX.XX MB" - must be <500MB
+### Training (with model validation)
+```bash
+# Step 1: Verify model size before training
+python train.py  # First log shows "Model size: XX.XX MB"
 
-# Monitor with TensorBoard (runs in background)
-tensorboard --logdir results/logs
+# Step 2: Monitor training live
+tensorboard --logdir results/logs &
 
-# Resume from checkpoint (edit train.py to load checkpoint)
-# Checkpoint contains: model_state_dict, optimizer_state_dict, epoch, best_val_acc
+# Step 3: Results saved to
+# results/checkpoints/best_model.pt (lowest val_loss)
+# results/checkpoints/checkpoint_epoch_N.pt (periodic saves)
 ```
 
 ### Inference & Submission
-```powershell
-# Standard prediction
+```bash
+# Generate predictions (returns CSV: image_id, label)
 python inference.py --checkpoint results/checkpoints/best_model.pt --output predictions.csv
 
-# With TTA (horizontal flip averaging)
+# With test-time augmentation (4x flipped predictions averaged)
 python inference.py --checkpoint results/checkpoints/best_model.pt --output predictions.csv --tta
 
-# Benchmark speed (required for competition)
+# Verify inference speed meets <100ms requirement
 python inference.py --checkpoint results/checkpoints/best_model.pt --benchmark
 ```
 
-**Output format requirement**: CSV with `image_id,label` columns, UTF-8 encoding (see `inference.py` line ~200).
-
-### CLI Alternative
-```powershell
-python cli/flower_cli.py models      # List all 6 models with stats
-python cli/flower_cli.py train       # Wrapper for train.py
-python cli/flower_cli.py predict --checkpoint <path> --output <csv> --tta
-```
-
-## Project-Specific Conventions
-
-### Trainer Class Pattern (`train.py`)
-- Uses **mixed precision (AMP)** by default (`GradScaler` + `autocast` context)
-- **Early stopping** based on `val_accuracy` with patience from config
-- Saves checkpoints to `cfg.checkpoint_dir` with `best_model.pt` + `checkpoint_epoch_N.pt`
-- **TensorBoard logging** of loss, accuracy, LR every epoch
-
-### Dataset Convention (`datasets/flower_dataset.py`)
-- Returns `(image, label, image_id)` - third item for tracking during inference
-- **Albumentations** transforms are config-driven (list of dicts in YAML)
-- `build_transforms()` converts YAML config to `A.Compose` pipeline
-- Test set uses `is_test=True` flag (label=-1, scans directory for images)
-
-### Model Registry Pattern (`models/flower_model.py`)
-```python
-# All models use FlowerRecognitionModel wrapper
-model = FlowerRecognitionModel(
-    architecture='convnext_base',  # timm model name
-    num_classes=100,               # Fixed for competition
-    pretrained=True,               # ImageNet weights
-    drop_path_rate=0.1             # Stochastic depth
-)
-# Access underlying timm model: model.model
-```
-
-**Supported architectures**: `convnext_base|tiny|large`, `efficientnet_b3`, `efficientnetv2_rw_l`, `swin_base_patch4_window7_224`
-
 ### Checkpoint Structure
 ```python
-checkpoint = {
+torch.load(checkpoint_path) returns {
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
     'scheduler_state_dict': scheduler.state_dict(),
-    'epoch': epoch,
-    'best_val_acc': best_val_acc,
+    'epoch': int,
+    'best_val_acc': float,
     'config': OmegaConf.to_container(cfg)
 }
 ```
 
-## Common Pitfalls
+## Common Patterns & Implementation Details
 
-1. **Model size exceeds 500MB**: Switch to smaller model (`convnext_base` → `convnext_tiny`) or reduce `drop_path_rate`
-2. **CUDA OOM**: Reduce `dataset.batch_size` in config (default 32) or `num_workers`
-3. **Slow inference**: Ensure `use_amp=true` in training config, consider `torch.compile()` in PyTorch 2.0+
-4. **TensorBoard not updating**: Check `log_dir` path in config, ensure SummaryWriter writes every epoch
-5. **Augmentation too weak/strong**: Use `augmentation=medium` or `augmentation=light` for large datasets
+### Loss Functions (in `models/losses.py`)
+- **Default**: `nn.CrossEntropyLoss` with label_smoothing from config
+- **Focal Loss**: For imbalanced classes, alpha=0.25, gamma=2.0
+- Factory: `get_loss_function(cfg)` returns configured loss based on `cfg.training.loss_type`
 
-## Integration Points
-
-- **External**: timm library for models (`timm.create_model()`), Albumentations for augmentation
-- **Configuration**: Hydra resolves `${output_dir}` interpolations in config.yaml
-- **Logging**: TensorBoard writes to `results/logs/`, accessed via `tensorboard --logdir`
-- **Data format**: Expects `data/train.csv` with `image_id,label` columns, `data/train/*.jpg` images
-- **Test data**: `data/test/*.jpg` with no CSV (inference scans directory)
-
-## Testing & Validation
-
-```powershell
-# Generate sample data for testing
-python generate_sample_data.py
-
-# Verify setup before training
-python verify_setup.py
-
-# Evaluate model on validation set
-python evaluate.py --checkpoint results/checkpoints/best_model.pt
-
-# Prepare competition submission package
-python prepare_submission.py --checkpoint <path> --predictions <csv>
+### Mixed Precision Training (AMP)
+```python
+# Pattern in Trainer.train_step() at line ~160:
+with autocast():
+    outputs = self.model(images)
+    loss = self.criterion(outputs, labels)
+self.scaler.scale(loss).backward()
+# Gradient clipping applied before step()
 ```
 
-## Key Files Reference
-- **Training entry**: `train.py` (Trainer class, main training loop)
-- **Model factory**: `models/__init__.py` (`build_model()`, `get_model_size_mb()`)
-- **Dataset factory**: `datasets/__init__.py` (`create_dataloaders()`)
-- **Utils**: `utils.py` (plotting, confusion matrix, seed setting)
-- **Competition prep**: `prepare_submission.py` (creates submission.zip with required structure)
+### Inference with Image ID Tracking
+```python
+# FlowerDataset returns (image, label, image_id)
+# Predictor.predict() preserves image_ids for CSV output:
+# Column 1: image_id (from dataset third return value)
+# Column 2: label (argmax of logits)
+```
+
+## File References
+
+| File | Purpose |
+|------|---------|
+| `train.py` (Trainer class) | Main training loop, checkpointing, TensorBoard setup |
+| `inference.py` (Predictor class) | Batch prediction, TTA, speed benchmarking |
+| `models/__init__.py` | `build_model()`, `get_model_size_mb()`, `get_loss_function()` |
+| `datasets/__init__.py` | `create_dataloaders()`, `build_transforms()` |
+| `verify_setup.py` | Validate data directory structure before training |
+| `prepare_submission.py` | Package predictions into competition submission format |
+
+## Troubleshooting Checklist
+
+1. **Model exceeds 500MB**: Use `convnext_tiny` (146MB) or reduce `drop_path_rate` from 0.1 → 0.05
+2. **CUDA OOM during training**: Reduce `batch_size` (config: `dataset.batch_size=16`), decrease `num_workers`
+3. **Validation accuracy not improving**: Try `augmentation=light` or increase `training.epochs`
+4. **Inference slow**: Enable AMP in config (`training.use_amp=true`) or use smaller model
+5. **CSV encoding errors**: Ensure `pd.read_csv()` and `.to_csv()` use `encoding='utf-8'`

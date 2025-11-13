@@ -10,13 +10,17 @@ defaults:
 
 # Dataset settings (adjust based on GPU)
 dataset:
-  batch_size: 16  # Good for 16GB VRAM
-  num_workers: 8
+  batch_size: 13  # Optimized for 32GB VRAM with 600x600 images
   
 # Training settings
 training:
-  epochs: 100
-  accumulation_steps: 2  # Simulate batch_size=32
+  epochs: 130
+  accumulation_steps: 1  # Effective batch_size = 16×1 = 16
+  val_every: 1  # Validate every N epochs (set to 5 for faster training)
+  save_every: 5  # Save checkpoint every N epochs
+  early_stopping:
+    patience: 15
+    min_delta: 0.001
   
 # Project Settings
 project_name: flower_recognition
@@ -24,27 +28,12 @@ experiment_name: efficientnetv2_l
 seed: 42
 
 # Paths
-data_dir: ./data
+data_dir: ./datasets
 output_dir: ./results
 checkpoint_dir: ${output_dir}/checkpoints
 log_dir: ${output_dir}/logs
 
 # Hardware
 device: cuda
-num_workers: 8
+num_workers: 12  # Match batch_size for efficiency
 pin_memory: true
-
-# Performance:
-# - Model size: ~450MB
-# - Training time: ~5-8 hours (100 epochs)
-# - Expected accuracy: 88-92% (BEST!)
-# - VRAM usage: ~12-16GB
-# - Inference: ~50-80ms
-# - Use case: Competition submission, highest accuracy
-
-# GPU-specific batch size recommendations:
-# - 8GB (3060):    batch_size=8,  accumulation_steps=4
-# - 12GB (3060Ti): batch_size=12, accumulation_steps=3
-# - 16GB (3080):   batch_size=16, accumulation_steps=2
-# - 24GB (4090):   batch_size=32, accumulation_steps=1
-# - 32GB (5090):   batch_size=64, accumulation_steps=1, lr=0.0002

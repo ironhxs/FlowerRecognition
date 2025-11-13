@@ -31,6 +31,7 @@ save_every: 5
 save_best_only: true
 monitor_metric: val_accuracy
 monitor_mode: max
+val_every: 1  # Validate every N epochs (1=every epoch)
 
 # Loss function - Focal Loss for difficult samples
 loss_function: focal  # Options: 'ce', 'focal', 'lsce'

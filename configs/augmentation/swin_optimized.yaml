@@ -1,0 +1,89 @@
+# Swin V2 Optimized Augmentation
+# Tailored for Swin Transformer V2's attention mechanism
+# Focus: preserve global structure while enhancing local details
+
+train:
+  # Geometric transforms - preserve flower structure
+  - RandomResizedCrop:
+      size: [256, 256]
+      scale: [0.7, 1.0]  # Less aggressive than ultra_strong
+      ratio: [0.9, 1.11]  # Closer to square to preserve flower shape
+  - RandomHorizontalFlip:
+      p: 0.5
+  - RandomRotate90:
+      p: 0.5
+  - Affine:  # 替代ShiftScaleRotate
+      translate_percent: 0.1  # 相当于shift_limit
+      scale: [0.85, 1.15]  # 相当于scale_limit=0.15
+      rotate: [-180, 180]  # 相当于rotate_limit=180
+      p: 0.5
+  
+  # Advanced augmentations for Swin's attention
+  - GridDistortion:  # Helps Swin learn robust attention patterns
+      num_steps: 5
+      distort_limit: 0.2
+      p: 0.3
+  - OpticalDistortion:
+      distort_limit: 0.15
+      p: 0.3
+  
+  # Color augmentations - Swin benefits from color diversity
+  - HueSaturationValue:
+      hue_shift_limit: 20
+      sat_shift_limit: 35
+      val_shift_limit: 20
+      p: 0.7
+  - ColorJitter:
+      brightness: 0.3
+      contrast: 0.3
+      saturation: 0.3
+      hue: 0.1
+      p: 0.5
+  - RandomToneCurve:  # Simulate different camera sensors
+      scale: 0.1
+      p: 0.3
+  
+  # Cutout variants - force attention to different regions
+  - CoarseDropout:
+      num_holes_range: [3, 8]  # 新API: (min_holes, max_holes)
+      hole_height_range: [16, 32]  # 新API: (min_height, max_height)
+      hole_width_range: [16, 32]  # 新API: (min_width, max_width)
+      fill: 0  # 新API: fill_value改为fill
+      p: 0.4
+  
+  # Detail preservation
+  - Sharpen:
+      alpha: [0.2, 0.5]
+      lightness: [0.5, 1.0]
+      p: 0.2
+  - GaussianBlur:
+      blur_limit: [3, 5]
+      p: 0.15
+  
+  # Lighting variations
+  - RandomBrightnessContrast:
+      brightness_limit: 0.25
+      contrast_limit: 0.25
+      p: 0.5
+  - RandomShadow:
+      shadow_roi: [0, 0.5, 1, 1]
+      num_shadows_limit: [1, 2]
+      shadow_dimension: 5
+      p: 0.2
+  
+  # Normalization (always last)
+  - Normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+
+# Validation transforms - standard test-time augmentation
+val:
+  - Resize:
+      height: 292  # 256 * 1.14
+      width: 292
+  - CenterCrop:
+      height: 256
+      width: 256
+  - Normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]

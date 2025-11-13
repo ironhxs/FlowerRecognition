@@ -1,0 +1,28 @@
+# Swin V2 Optimized Configuration for Flower Recognition
+# Complete training setup with all optimizations
+
+defaults:
+  - model: swin_v2_optimized
+  - dataset: flower100
+  - training: swin_optimized
+  - augmentation: swin_optimized
+  - _self_
+
+# Experiment name
+name: swin_v2_optimized
+
+# Paths (must be at root level for train.py)
+data_dir: ./datasets  # 数据在datasets目录
+checkpoint_dir: ./results/checkpoints_swin_optimized
+log_dir: ./results/logs_swin_optimized
+
+# Hardware settings
+device: cuda
+num_workers: 18
+pin_memory: true
+
+# Reproducibility
+seed: 42
+
+# Additional settings
+use_wandb: false  # Set to true if using Weights & Biases

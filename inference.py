@@ -54,12 +54,21 @@ class Predictor:
         print(f"Using device: {self.device}")
     
     def load_checkpoint(self, checkpoint_path: str):
-        """Load model checkpoint."""
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
+        """Load model checkpoint (supports both full and weights-only formats)."""
+        checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
         
-        if 'best_val_acc' in checkpoint:
-            print(f"Model validation accuracy: {checkpoint['best_val_acc']:.2f}%")
+        # Handle different checkpoint formats
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            # Standard format with model_state_dict key
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            if 'best_val_acc' in checkpoint:
+                print(f"Model validation accuracy: {checkpoint['best_val_acc']:.2f}%")
+            if 'epoch' in checkpoint:
+                print(f"Trained for {checkpoint['epoch']} epochs")
+        else:
+            # Weights-only format (state_dict directly)
+            self.model.load_state_dict(checkpoint)
+            print("Loaded weights-only checkpoint")
     
     @torch.no_grad()
     def predict(

@@ -77,6 +77,9 @@ class FlowerDataset(Dataset):
         
         # Load image
         image_path = os.path.join(self.data_dir, image_id)
+        # Fix truncated images
+        from PIL import ImageFile
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
         image = Image.open(image_path).convert('RGB')
         image = np.array(image)
         
@@ -94,13 +97,14 @@ class FlowerDataset(Dataset):
         return image, label, image_id
 
 
-def build_transforms(config: dict, is_train: bool = True) -> A.Compose:
+def build_transforms(config: dict, is_train: bool = True, input_size: int = 600) -> A.Compose:
     """
     Build albumentations transform pipeline from config.
     
     Args:
         config: Configuration dictionary with augmentation settings
         is_train: Whether to use training or validation transforms
+        input_size: Target image size (overrides size in config)
         
     Returns:
         Albumentations Compose object
@@ -113,6 +117,21 @@ def build_transforms(config: dict, is_train: bool = True) -> A.Compose:
         for aug_name, aug_params in aug_dict.items():
             if aug_params is None:
                 aug_params = {}
+            else:
+                # Make a copy to avoid modifying the original config
+                aug_params = aug_params.copy()
+            
+            # Replace 'size' parameter with input_size if present
+            if 'size' in aug_params:
+                # For Albumentations, size should be (height, width) or just size for square
+                if aug_name in ['RandomResizedCrop', 'CenterCrop']:
+                    aug_params['size'] = (input_size, input_size)
+                else:
+                    aug_params['size'] = input_size
+            # Also handle height/width for Resize
+            if aug_name == 'Resize' and 'height' in aug_params:
+                aug_params['height'] = input_size
+                aug_params['width'] = input_size
             
             # Get augmentation class from albumentations
             if hasattr(A, aug_name):
@@ -135,9 +154,12 @@ def create_dataloaders(cfg) -> Tuple[DataLoader, DataLoader, DataLoader]:
     Returns:
         Tuple of (train_loader, val_loader, test_loader)
     """
-    # Build transforms
-    train_transform = build_transforms(cfg.augmentation, is_train=True)
-    val_transform = build_transforms(cfg.augmentation, is_train=False)
+    # Get input size from model config (default to 600 if not specified)
+    input_size = getattr(cfg.model, 'input_size', 600)
+    
+    # Build transforms with model's input size
+    train_transform = build_transforms(cfg.augmentation, is_train=True, input_size=input_size)
+    val_transform = build_transforms(cfg.augmentation, is_train=False, input_size=input_size)
     
     # Load training data
     train_csv = cfg.dataset.train_csv

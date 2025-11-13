@@ -16,7 +16,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.cuda.amp import GradScaler, autocast
+from torch.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 import hydra
@@ -75,7 +75,7 @@ class Trainer:
         self.scheduler = self.build_scheduler()
         
         # Mixed precision scaler
-        self.scaler = GradScaler() if cfg.training.use_amp else None
+        self.scaler = GradScaler('cuda') if cfg.training.use_amp else None
         
         # Training state
         self.current_epoch = 0
@@ -151,7 +151,7 @@ class Trainer:
             
             # Forward pass with mixed precision
             if self.scaler is not None:
-                with autocast():
+                with autocast('cuda'):
                     outputs = self.model(images)
                     loss = self.criterion(outputs, labels)
                 
@@ -279,8 +279,13 @@ class Trainer:
             # Train
             train_metrics = self.train_epoch()
             
-            # Validate
-            val_metrics = self.validate()
+            # Validate (every N epochs)
+            val_every = self.cfg.training.get('val_every', 1)
+            if (epoch + 1) % val_every == 0 or epoch == 0:
+                val_metrics = self.validate()
+            else:
+                val_metrics = {'val_loss': 0.0, 'val_accuracy': 0.0}
+                print(f"Skipping validation (val_every={val_every})")
             
             # Learning rate scheduling
             if self.scheduler is not None:
@@ -329,6 +334,13 @@ def main(cfg: DictConfig):
     print("="*60)
     print(OmegaConf.to_yaml(cfg))
     print("="*60)
+    print(f"\n[Config Debug]")
+    print(f"  batch_size: {cfg.dataset.batch_size}")
+    print(f"  num_workers: {cfg.num_workers}")
+    print(f"  accumulation_steps: {cfg.training.accumulation_steps}")
+    print(f"  epochs: {cfg.training.epochs}")
+    print(f"  val_every: {cfg.training.get('val_every', 1)}")
+    print("="*60 + "\n")
     
     # Create trainer and train
     trainer = Trainer(cfg)

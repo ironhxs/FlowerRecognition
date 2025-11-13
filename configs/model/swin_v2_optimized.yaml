@@ -1,0 +1,18 @@
+# Swin Transformer V2 Base - Optimized Configuration
+# For 100-class flower recognition competition
+
+name: swin_v2_optimized
+architecture: swinv2_base_window12to16_192to256.ms_in22k_ft_in1k
+pretrained: true
+num_classes: 100
+input_size: 256
+
+# Regularization - higher for preventing overfitting
+drop_path_rate: 0.3  # Increased from 0.2
+drop_rate: 0.1  # Dropout on classification head
+
+# Model architecture details
+# - 87M parameters (348MB)
+# - Window size: 12→16 (for 192→256 resolution)
+# - Pretrained on ImageNet-22K and fine-tuned on ImageNet-1K
+# - Best for fine-grained classification with attention mechanism

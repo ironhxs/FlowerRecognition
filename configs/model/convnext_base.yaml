@@ -13,7 +13,7 @@ drop_rate: 0.0
 layer_scale_init_value: 1e-6
 
 # Input
-input_size: 600  # Competition requirement
+input_size: 256
 in_chans: 3
 
 # Inference optimization
