@@ -1,0 +1,45 @@
+# Resume Training Configuration - Weights Only
+# 只加载模型权重，Optimizer 和 Scheduler 重新初始化
+# 适合配置变化大的续训场景
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-5              # ↓ 更低的 LR (从头训练的 5e-5 → 2e-5)
+  betas: [0.9, 0.999]
+  weight_decay: 0.12      # 保持强正则
+  eps: 1.0e-8
+
+scheduler:
+  name: cosine
+  warmup_epochs: 3        # 短 warmup (续训不需要太长)
+  min_lr: 1.0e-7
+  warmup_lr: 5.0e-6
+
+# Training settings
+epochs: 100              # 续训不需要太多轮
+batch_size: 32
+accumulation_steps: 4
+val_every: 1
+save_every: 5
+
+# Regularization
+label_smoothing: 0.2
+drop_path_rate: 0.35
+
+# Loss function
+loss_function: focal
+focal_alpha: 0.25
+focal_gamma: 2.0
+
+# Early stopping
+early_stopping:
+  patience: 10           # 续训时更早停止
+  min_delta: 0.001
+  mode: max
+  monitor: val_acc
+
+# Mixed precision
+use_amp: true
+
+# Gradient clipping
+clip_grad_norm: 1.0

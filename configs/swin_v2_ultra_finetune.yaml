@@ -1,0 +1,26 @@
+# Swin V2 Ultra Fine-tune with Stronger Regularization
+
+defaults:
+  - model: swin_v2_optimized
+  - dataset: flower100
+  - training: swin_ultra_finetune
+  - augmentation: ultra_strong  # 更强的数据增强
+  - _self_
+
+name: swin_v2_ultra_finetune
+
+dataset:
+  batch_size: 32
+
+data_dir: ./datasets
+checkpoint_dir: ./results/checkpoints_swin_ultra_finetune
+log_dir: ./results/logs_swin_ultra_finetune
+
+# 从当前最佳模型继续
+resume_from: ./results/checkpoints_swin_optimized/best_model.pt
+
+device: cuda
+num_workers: 18
+pin_memory: true
+seed: 42
+use_wandb: false

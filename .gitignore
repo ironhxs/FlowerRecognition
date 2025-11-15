@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 datasets/train/
-
+exported_val_dataset
 # Distribution / packaging
 .Python
 build/

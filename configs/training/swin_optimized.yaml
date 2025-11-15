@@ -16,25 +16,25 @@ scheduler:
   warmup_lr: 1.0e-6
 
 # Training settings
-epochs: 300  # Longer training for convergence
-batch_size: 64  # 显存充足,直接用32 (你有15GB空闲)
-accumulation_steps: 1  # 不需要梯度累积,每步更新
+epochs: 250  # 适当减少轮数
+batch_size: 32  # VRAM 限制下降低物理 batch
+accumulation_steps: 4  # 梯度累积 → 等效 batch=128
 val_every: 1
 save_every: 5
 
-# Regularization
-label_smoothing: 0.1
-drop_path_rate: 0.2  # Stochastic depth for Swin V2
+# Regularization - 增强防过拟合
+label_smoothing: 0.15  # 0.1 → 0.15
+drop_path_rate: 0.3  # 0.2 → 0.3
 
 # Loss function
 loss_function: focal
 focal_alpha: 0.25
 focal_gamma: 2.0
 
-# Early stopping
+# Early stopping - 更激进防止过拟合
 early_stopping:
-  patience: 20  # More patience for longer training
-  min_delta: 0.001
+  patience: 15  # 20 → 15
+  min_delta: 0.002  # 0.001 → 0.002
   mode: max
   monitor: val_acc
 

@@ -1,0 +1,39 @@
+# Swin V2 Anti-Overfitting Complete Configuration
+# 目标：解决 Train 0.99 / Val 0.9676 过拟合问题 (gap=0.023)
+# 策略：
+#   1. 梯度累积 (batch 32→128) 提高梯度稳定性
+#   2. 强正则化 (weight_decay 0.05→0.15, label_smoothing 0.1→0.2)
+#   3. Medium 数据增强 (平衡增强强度)
+#   4. 更长 warmup (10 epochs) 稳定初期训练
+# 预期：Val Acc 0.975+, Train/Val Gap < 0.01
+
+defaults:
+  - model: swin_v2_optimized
+  - dataset: flower100
+  - training: swin_anti_overfit
+  - augmentation: medium  # 平衡的增强强度
+  - _self_
+
+# Experiment name
+name: swin_v2_anti_overfit
+
+# Override dataset batch size
+dataset:
+  batch_size: 64  # 直接用大 batch（显存充足）
+  val_split: 0.15  # 保持 15% 验证集
+
+# Paths - 训练时用 autodl-tmp（大空间），完成后自动备份
+data_dir: ./datasets
+checkpoint_dir: /root/autodl-tmp/checkpoints_swin_anti_overfit
+log_dir: /root/tf-logs/swin_anti_overfit
+
+# Hardware settings
+device: cuda
+num_workers: 18
+pin_memory: true
+
+# Reproducibility
+seed: 42
+
+# Monitoring
+use_wandb: false

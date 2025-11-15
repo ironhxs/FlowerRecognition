@@ -1,0 +1,55 @@
+# Swin V2 Anti-Overfitting Configuration
+# 专门针对 Train 0.99 / Val 0.96 的过拟合问题
+# 使用梯度累积模拟大 batch size + 强正则化
+
+# Optimizer settings - 降低 LR 让模型细致学习
+optimizer:
+  name: AdamW
+  lr: 2.0e-5              # 适中起点，配合快速衰减
+  betas: [0.9, 0.999]
+  weight_decay: 0.15      # 保持强正则化
+  eps: 1.0e-8
+
+# Learning rate scheduler - 快速衰减策略
+scheduler:
+  name: cosine
+  warmup_epochs: 3        # ↓ 极短 warmup (10 → 3)，快速进入衰减阶段
+  min_lr: 5.0e-7          # 20 epochs 内快速降到最低
+  warmup_lr: 5.0e-7       # 从极低 LR 开始
+
+# Training settings - 直接使用大 batch
+epochs: 20              # 充足但不过度的轮数
+batch_size: 128          # 显存充足，直接用大 batch
+accumulation_steps: 1    # 不需要累积
+val_every: 1
+save_every: 5
+
+# Regularization - 关键防过拟合设置
+label_smoothing: 0.2     # 强平滑，防止过度自信
+drop_path_rate: 0.35     # 强 stochastic depth
+# 注意：drop_rate 在 model config 中设置为 0.1
+
+# MixUp / CutMix augmentation (数据增强防过拟合)
+use_mixup: true          # 启用 MixUp
+use_cutmix: true         # 启用 CutMix
+mixup_alpha: 0.2         # MixUp 混合强度 (0.2-1.0, 越小越保守)
+cutmix_alpha: 1.0        # CutMix 混合强度
+mixup_prob: 0.5          # MixUp vs CutMix 概率 (0.5 = 各 50%)
+
+# Loss function
+loss_function: focal
+focal_alpha: 0.25
+focal_gamma: 2.0
+
+# Early stopping - 防止训练过久导致过拟合
+early_stopping:
+  patience: 15           # 适中耐心 (给模型充分学习时间)
+  min_delta: 0.001       # 敏感的改进阈值
+  mode: max
+  monitor: val_acc
+
+# Mixed precision training
+use_amp: true
+
+# Gradient clipping
+clip_grad_norm: 1.0

@@ -30,6 +30,96 @@ from datasets import create_dataloaders
 from models import build_model, get_model_size_mb, get_loss_function
 
 
+def mixup_data(x, y, alpha=1.0):
+    """MixUp augmentation.
+    
+    Args:
+        x: Input images [B, C, H, W]
+        y: Labels [B]
+        alpha: Beta distribution parameter
+        
+    Returns:
+        mixed_x: Mixed images
+        y_a, y_b: Original labels
+        lam: Mixing coefficient
+    """
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+    
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+    
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    
+    return mixed_x, y_a, y_b, lam
+
+
+def cutmix_data(x, y, alpha=1.0):
+    """CutMix augmentation.
+    
+    Args:
+        x: Input images [B, C, H, W]
+        y: Labels [B]
+        alpha: Beta distribution parameter
+        
+    Returns:
+        mixed_x: Mixed images
+        y_a, y_b: Original labels
+        lam: Mixing coefficient (area ratio)
+    """
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+    
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+    
+    # Get random box
+    _, _, H, W = x.size()
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = int(W * cut_rat)
+    cut_h = int(H * cut_rat)
+    
+    # Uniform sampling
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+    
+    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    bby1 = np.clip(cy - cut_h // 2, 0, H)
+    bbx2 = np.clip(cx + cut_w // 2, 0, W)
+    bby2 = np.clip(cy + cut_h // 2, 0, H)
+    
+    # Mix images
+    mixed_x = x.clone()
+    mixed_x[:, :, bby1:bby2, bbx1:bbx2] = x[index, :, bby1:bby2, bbx1:bbx2]
+    
+    # Adjust lambda to exactly match pixel ratio
+    lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (W * H))
+    
+    y_a, y_b = y, y[index]
+    
+    return mixed_x, y_a, y_b, lam
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    """MixUp loss function.
+    
+    Args:
+        criterion: Loss function
+        pred: Model predictions
+        y_a, y_b: Original labels
+        lam: Mixing coefficient
+        
+    Returns:
+        Mixed loss
+    """
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+
 class Trainer:
     """Trainer class for flower recognition model."""
     
@@ -181,11 +271,37 @@ class Trainer:
             images = images.to(self.device)
             labels = labels.to(self.device)
             
+            # Apply MixUp/CutMix augmentation
+            use_mixup = self.cfg.training.get('use_mixup', False)
+            use_cutmix = self.cfg.training.get('use_cutmix', False)
+            mixup_alpha = self.cfg.training.get('mixup_alpha', 1.0)
+            cutmix_alpha = self.cfg.training.get('cutmix_alpha', 1.0)
+            mixup_prob = self.cfg.training.get('mixup_prob', 0.5)
+            
+            if use_mixup or use_cutmix:
+                r = np.random.rand()
+                if use_mixup and use_cutmix:
+                    # Both enabled: randomly choose
+                    if r < mixup_prob:
+                        images, labels_a, labels_b, lam = mixup_data(images, labels, mixup_alpha)
+                    else:
+                        images, labels_a, labels_b, lam = cutmix_data(images, labels, cutmix_alpha)
+                elif use_mixup:
+                    images, labels_a, labels_b, lam = mixup_data(images, labels, mixup_alpha)
+                elif use_cutmix:
+                    images, labels_a, labels_b, lam = cutmix_data(images, labels, cutmix_alpha)
+            else:
+                labels_a = labels_b = labels
+                lam = 1.0
+            
             # Forward pass with mixed precision
             if self.scaler is not None:
                 with autocast('cuda'):
                     outputs = self.model(images)
-                    loss = self.criterion(outputs, labels)
+                    if use_mixup or use_cutmix:
+                        loss = mixup_criterion(self.criterion, outputs, labels_a, labels_b, lam)
+                    else:
+                        loss = self.criterion(outputs, labels)
                 
                 # Backward pass
                 self.optimizer.zero_grad()
@@ -203,7 +319,10 @@ class Trainer:
                 self.scaler.update()
             else:
                 outputs = self.model(images)
-                loss = self.criterion(outputs, labels)
+                if use_mixup or use_cutmix:
+                    loss = mixup_criterion(self.criterion, outputs, labels_a, labels_b, lam)
+                else:
+                    loss = self.criterion(outputs, labels)
                 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -216,7 +335,7 @@ class Trainer:
                 
                 self.optimizer.step()
             
-            # Statistics
+            # Statistics (use original labels for accuracy calculation)
             total_loss += loss.item()
             _, predicted = outputs.max(1)
             total += labels.size(0)
