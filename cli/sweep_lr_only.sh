@@ -4,18 +4,6 @@
 
 set -e
 
-echo "========================================================================"
-echo "🎯 精细学习率扫描 (小 LR 专注)"
-echo "========================================================================"
-echo ""
-echo "扫描范围: 8e-6, 1e-5, 1.2e-5, 1.4e-5, 1.6e-5, 1.8e-5, 2e-5, 2.2e-5, 2.4e-5, 2.6e-5, 3e-5"
-echo "固定参数: weight_decay=0.15, label_smoothing=0.2, drop_path_rate=0.35"
-echo "训练轮数: 20 epochs"
-echo "总实验数: 11 组"
-echo "预计时间: ~3.2 小时"
-echo ""
-echo "========================================================================"
-echo ""
 
 # 创建目录
 mkdir -p /root/autodl-tmp/checkpoints_sweep_lr
@@ -29,7 +17,7 @@ echo "✅ TensorBoard: http://localhost:6006"
 echo ""
 
 # 学习率列表（从 8e-6 开始，11 个实验）
-LR_VALUES=(8.0e-6 1.0e-5 1.2e-5 1.4e-5 1.6e-5 1.8e-5 2.0e-5 2.2e-5 2.4e-5 2.6e-5 3.0e-5)
+LR_VALUES=(8.0e-6)
 
 # 循环训练
 for lr in "${LR_VALUES[@]}"; do
@@ -42,6 +30,7 @@ for lr in "${LR_VALUES[@]}"; do
     python train.py -cn swin_v2_anti_overfit \
       training.optimizer.lr=$lr \
       training.epochs=20 \
+      dataset.val_split=0.05 \
       checkpoint_dir="/root/autodl-tmp/checkpoints_sweep_lr/${exp_name}" \
       log_dir="/root/tf-logs/sweep_lr/${exp_name}"
     

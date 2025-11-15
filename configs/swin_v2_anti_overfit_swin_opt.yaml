@@ -1,0 +1,29 @@
+# Swin V2 Anti-Overfitting with Strong Augmentation
+# 使用 strong augmentation 进一步防过拟合
+
+defaults:
+  - model: swin_v2_optimized
+  - dataset: flower100
+  - training: swin_anti_overfit_light_mixup  # 使用轻量 MixUp/CutMix
+  - augmentation: swin_optimized  # 使用 Swin 优化增强
+  - _self_
+
+# Experiment name
+name: swin_v2_anti_overfit_swin_opt
+
+# Override dataset batch size
+dataset:
+  batch_size: 64
+  val_split: 0.15
+
+# Paths
+data_dir: ./datasets
+checkpoint_dir: /root/autodl-tmp/checkpoints_swin_anti_overfit_swin_opt
+log_dir: /root/tf-logs/swin_anti_overfit_swin_opt
+
+# Hardware settings
+device: cuda
+num_workers: 18
+pin_memory: true
+seed: 42
+use_wandb: false

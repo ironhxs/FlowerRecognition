@@ -35,7 +35,7 @@ echo ""
 
 # 精选 LR 列表（MixUp 允许更大 LR，扩大搜索范围）
 # 理论: MixUp 梯度更平滑 → 可以用更大学习率
-LR_VALUES=(2.2e-5 2.6e-5 3.0e-5 3.5e-5 4.0e-5)
+LR_VALUES=(3.0e-5)
 
 # 循环训练
 for lr in "${LR_VALUES[@]}"; do

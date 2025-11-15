@@ -1,0 +1,54 @@
+# Swin V2 Anti-Overfitting Configuration with Light MixUp/CutMix
+# 专门针对 Train 0.99 / Val 0.96 的过拟合问题
+# 使用轻量 MixUp/CutMix
+
+# Optimizer settings
+optimizer:
+  name: AdamW
+  lr: 2.0e-5
+  betas: [0.9, 0.999]
+  weight_decay: 0.15
+  eps: 1.0e-8
+
+# Learning rate scheduler
+scheduler:
+  name: cosine
+  warmup_epochs: 3
+  min_lr: 5.0e-7
+  warmup_lr: 5.0e-7
+
+# Training settings
+epochs: 40
+batch_size: 128
+accumulation_steps: 1
+val_every: 1
+save_every: 5
+
+# Regularization
+label_smoothing: 0.2
+drop_path_rate: 0.35
+
+# MixUp / CutMix augmentation (减轻强度)
+use_mixup: true
+use_cutmix: true
+mixup_alpha: 0.1         # 降低混合强度 (0.2 → 0.1，更保守)
+cutmix_alpha: 0.5        # 降低混合强度 (1.0 → 0.5)
+mixup_prob: 0.3          # 降低使用概率 (0.5 → 0.3，70% 正常样本)
+
+# Loss function
+loss_function: focal
+focal_alpha: 0.25
+focal_gamma: 2.0
+
+# Early stopping
+early_stopping:
+  patience: 15
+  min_delta: 0.001
+  mode: max
+  monitor: val_acc
+
+# Mixed precision training
+use_amp: true
+
+# Gradient clipping
+clip_grad_norm: 1.0
