@@ -4,7 +4,7 @@
 # Training augmentations
 train:
   - RandomResizedCrop:
-      size: 600
+      size: [600, 600]
       scale: [0.8, 1.0]
       ratio: [0.95, 1.05]
   - RandomHorizontalFlip:
