@@ -1,3 +1,6 @@
+# ============================================
+# Python
+# ============================================
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -5,8 +8,7 @@ __pycache__/
 
 # C extensions
 *.so
-datasets/train/
-exported_val_dataset
+
 # Distribution / packaging
 .Python
 build/
@@ -28,8 +30,6 @@ share/python-wheels/
 MANIFEST
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -135,7 +135,10 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+
+# ============================================
+# Virtual Environments
+# ============================================
 .env
 .envrc
 .venv
@@ -145,88 +148,145 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
+# ============================================
+# IDE & Editors
+# ============================================
+# PyCharm
+.idea/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Spyder
 .spyderproject
 .spyproject
 
-# Rope project settings
+# Rope
 .ropeproject
 
-# mkdocs documentation
-/site
+# Cursor AI Editor
+.cursorignore
+.cursorindexingignore
 
+# ============================================
+# Package Managers
+# ============================================
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+poetry.toml
+
+# pdm
+pdm.lock
+pdm.toml
+.pdm-python
+.pdm-build/
+
+# pixi
+pixi.lock
+.pixi
+
+# PEP 582
+__pypackages__/
+
+# ============================================
+# Type Checkers & Linters
+# ============================================
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+# Pyre
 .pyre/
 
-# pytype static type analyzer
+# pytype
 .pytype/
 
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
-# Abstra
-# Abstra is an AI-powered process automation framework.
-# Ignore directories containing user credentials, local state, and settings.
-# Learn more at https://abstra.io/docs
-.abstra/
-
-# Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
-
-# Ruff stuff:
+# Ruff
 .ruff_cache/
 
-# PyPI configuration file
-.pypirc
+# ============================================
+# Testing & Documentation
+# ============================================
+.pytest_cache/
+.hypothesis/
+cover/
 
-# Cursor
-#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
-.cursorignore
-.cursorindexingignore
+# Sphinx documentation
+docs/_build/
 
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
+# mkdocs
+/site
 
-# Project specific
+# ============================================
+# Project Specific - Flower Recognition
+# ============================================
+
+# Data files (large datasets)
 data/
-results/
-outputs/
-*.pt
-*.pth
-*.onnx
-submission.zip
-temp_submission/
-predictions*.csv
-!predictions_sample.csv
-# Training logs and process files
-*.pid
-*.log
-train_finetune.log
-nohup.out
-
-# Large dataset files - 数据文件不要提交
 datasets/train.zip
+datasets/test.zip
 datasets/*.csv
 datasets/train/
 datasets/test/
 datasets/val/
+exported_val_dataset/
+
+# Training outputs
+results/
+outputs/
+runs/
+logs/
+wandb/
+
+# Model files
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.h5
+*.pb
+
+# Submission files
+submission.zip
+temp_submission/
+predictions*.csv
+!predictions_sample.csv
+
+# Training logs
+*.log
+*.pid
+nohup.out
+train_finetune.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Hydra outputs
+outputs/
+multirun/
+
+# TensorBoard
+events.out.tfevents.*
+
+# Backup files
+*.bak
+*.backup
+
